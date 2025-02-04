@@ -1,0 +1,23 @@
+import pandas as pd
+
+# Load data
+df_transaction = pd.read_csv("transaction_data.csv")
+df_purchase = pd.read_csv("purchase_behaviour.csv")
+
+# Identify top 3 most profitable products
+top_products = df_transaction.groupby("PROD_NAME")["TOT_SALES"].sum().nlargest(3).reset_index()
+print("Top 3 Most Profitable Products:")
+print(top_products)
+
+# Identify most loyal customers (highest transaction frequency)
+loyal_customers = df_transaction["LYLTY_CARD_NBR"].value_counts().nlargest(10).index
+
+# Filter customer segments for top 10 loyal customers
+loyal_customers_data = df_purchase[df_purchase["LYLTY_CARD_NBR"].isin(loyal_customers)]
+
+# Aggregate to find most common characteristics
+loyal_customer_segments = loyal_customers_data.groupby(["LIFESTAGE", "PREMIUM_CUSTOMER"]).size().reset_index(name="Count")
+loyal_customer_segments = loyal_customer_segments.sort_values(by="Count", ascending=False)
+
+print("\nMost Loyal Customer Segments:")
+print(loyal_customer_segments)
