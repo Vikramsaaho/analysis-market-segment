@@ -1,0 +1,50 @@
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# Load the datasets
+transaction_data = pd.read_csv("transaction_data.csv")
+purchase_behaviour_data = pd.read_csv("purchase_behaviour.csv")
+
+# Identify the top 3 most profitable products
+top_products = (
+    transaction_data.groupby(["PROD_NBR", "PROD_NAME"])["TOT_SALES"]
+    .sum()
+    .reset_index()
+    .sort_values(by="TOT_SALES", ascending=False)
+    .head(3)
+)
+
+# Identify the most loyal customers (frequent shoppers)
+loyal_customers = (
+    transaction_data["LYLTY_CARD_NBR"]
+    .value_counts()
+    .reset_index()
+    .rename(columns={"index": "LYLTY_CARD_NBR", "LYLTY_CARD_NBR": "PURCHASE_COUNT"})
+)
+
+# Merge with customer demographic data
+loyal_customers = loyal_customers.merge(purchase_behaviour_data, on="LYLTY_CARD_NBR")
+
+# Identify the most common lifestage and premium segment among loyal customers
+loyal_customer_segments = (
+    loyal_customers.groupby(["LIFESTAGE", "PREMIUM_CUSTOMER"])["PURCHASE_COUNT"]
+    .sum()
+    .reset_index()
+    .sort_values(by="PURCHASE_COUNT", ascending=False)
+    .head(1)
+)
+
+# Display results
+print("Top 3 Most Profitable Products:")
+print(top_products)
+print("\nMost Loyal Customer Segment:")
+print(loyal_customer_segments)
+
+# Visualization
+plt.figure(figsize=(10, 5))
+plt.bar(top_products["PROD_NAME"], top_products["TOT_SALES"], color=["blue", "green", "red"])
+plt.xlabel("Product Name")
+plt.ylabel("Total Sales")
+plt.title("Top 3 Most Profitable Products")
+plt.xticks(rotation=45, ha="right")
+plt.show()
